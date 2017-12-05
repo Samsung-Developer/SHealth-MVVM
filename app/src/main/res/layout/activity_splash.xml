@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="local.sapl.dev.shealth.mvvm.SplashActivity">
+
+    <data>
+        <variable name="healthData" type="local.sapl.dev.shealth.mvvm.SplashViewModel"/>
+    </data>
 
     <TextView
         android:id="@+id/sample_text"
@@ -16,4 +20,4 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-</android.support.constraint.ConstraintLayout>
+</layout>
