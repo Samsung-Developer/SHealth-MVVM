@@ -2,46 +2,40 @@ package local.sapl.dev.shealth.mvvm;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MediatorLiveData;
+import android.content.Context;
 
 import com.samsung.android.sdk.healthdata.HealthDataService;
 import com.samsung.android.sdk.healthdata.HealthDataStore;
 
 import java.util.List;
 
-/**
- * Created by Owner on 5/12/2017.
- */
-
 public class HealthRepository {
 
     private static HealthRepository sHealthInstance;
+    private final HealthDataService mService;
+    private SHealth app;
 
-    private final HealthDataStore mHealthStore;
+    private HealthRepository(final HealthDataService service, final SHealth context) {
+        this.app = context;
+        mService = service;
 
-    private MediatorLiveData<List<UserProfileEntity>> mObservableUsers;
-
-    private HealthRepository(final HealthDataStore healthDataStore) {
-        mHealthStore = healthDataStore;
-
-        mObservableUsers = new MediatorLiveData<>();
-        mObservableUsers.addSource(mHealthStore.userDao().loadAllProfiles(),
-                userEntities -> {
-                    if (mHealthStore.getDatabaseCreated().getValue() != null) {
-                        mObservableUsers.postValue(userEntities);
-                    }
-                });
+        try {
+            mService.initialize(app);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    public static HealthRepository getHealthDataStore(final HealthDataStore healthDataStore) {
+    public LiveData<HealthDataStore> getHealthDataStore() { }
+
+    public static HealthRepository getInstance(final HealthDataService service, final Context context) {
         if (sHealthInstance == null) {
-            synchronized (HealthDataService.class) {
+            synchronized (DataRepository.class) {
                 if (sHealthInstance == null) {
-                    sHealthInstance = new HealthRepository(healthDataStore);
+                    sHealthInstance = new HealthRepository(service, (SHealth) context);
                 }
             }
         }
         return sHealthInstance;
     }
-
-    public LiveData<UserProfileEntity> loadProfile(ProfileType type) { return mDatabase.userDao().loadProfile(type); }
 }

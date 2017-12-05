@@ -15,19 +15,19 @@ public class DataRepository {
 
     private static HealthDataService sHealthInstance;
 
-    private final AppDatabase mDatabase;
+    private final HealthDataService mService;
     private MediatorLiveData<List<UserProfileEntity>> mObservableUsers;
 
     private DataRepository(final HealthDataService healthDataService) {
-        mDatabase = healthDataService;
-        mObservableUsers = new MediatorLiveData<>();
+        mService = healthDataService;
 
-        mObservableUsers.addSource(mDatabase.userDao().loadAllProfiles(),
-                userEntities -> {
-                    if (mDatabase.getDatabaseCreated().getValue() != null) {
-                        mObservableUsers.postValue(userEntities);
-                    }
-                });
+        try {
+            mService.initialize(applicationContext);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        mObservableUsers = new MediatorLiveData<>();
     }
 
     public static HealthDataService getHealthDataService(final HealthDataService healthDataService) {
@@ -38,7 +38,7 @@ public class DataRepository {
                 }
             }
         }
-        return sInstance;
+        return sHealthInstance;
     }
 
     public LiveData<UserProfileEntity> loadProfile(ProfileType type) { return mDatabase.userDao().loadProfile(type); }
