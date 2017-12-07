@@ -7,7 +7,9 @@ import android.arch.lifecycle.MediatorLiveData;
 import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.ViewModelProvider;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
+import com.samsung.android.sdk.healthdata.HealthConnectionErrorResult;
 import com.samsung.android.sdk.healthdata.HealthDataStore;
 
 import java.util.List;
@@ -19,21 +21,46 @@ import java.util.List;
 public class SplashViewModel extends AndroidViewModel {
 
     private final MediatorLiveData<HealthDataStore> mObservableDataStore;
+    private final HealthDSConnectionListener mConnectionListener;
 
-    public SplashViewModel(@NonNull Application application) {
+    public SplashViewModel(@NonNull Application application, HealthRepository repository) {
         super(application);
-
+// do i need to put repo in class property??
         mObservableDataStore = new MediatorLiveData<>();
         mObservableDataStore.setValue(null);
 
-        HealthDataStore ds = new HealthDataStore();
-        ds.
-
-        LiveData<HealthDataStore> dataStore = ((SHealth) application).getRepository().getHealthDataStore();
+        LiveData<HealthDataStore> dataStore = repository.getHealthDataStore();
 
         // observe the changes of the products from the database and forward them
         mObservableDataStore.addSource(dataStore, mObservableDataStore::setValue);
+
+        mConnectionListener = new HealthDSConnectionListener(repository){
+            @Override
+            public void onConnected() {
+                super.onConnected();
+
+            }
+
+            @Override
+            public void onConnectionFailed(HealthConnectionErrorResult error) {
+                super.onConnectionFailed(error);
+
+            }
+
+            @Override
+            public void onDisconnected() {
+                super.onDisconnected();
+
+            }
+        };
+
     }
+
+    public LiveData<String> getHealthSDKConnectionStatus(mConnectionListener){
+
+    }
+
+
 
     public static class Factory extends ViewModelProvider.NewInstanceFactory {
 
@@ -49,7 +76,7 @@ public class SplashViewModel extends AndroidViewModel {
         @Override
         public <T extends ViewModel> T create(Class<T> modelClass) {
             //noinspection unchecked
-            return (T) new SplashViewModel(mApplication);
+            return (T) new SplashViewModel(mApplication, mRepository);
         }
     }
 

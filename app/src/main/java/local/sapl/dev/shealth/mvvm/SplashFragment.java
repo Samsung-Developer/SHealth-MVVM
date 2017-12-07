@@ -89,32 +89,6 @@ public class SplashFragment extends Fragment {
         }
     };
 
-    private final HealthDataStore.ConnectionListener mConnectionListener = new HealthDataStore.ConnectionListener() {
 
-        @Override
-        public void onConnected() {
-            Log.d(APP_TAG, "Health data service is connected.");
-            mReporter = new StepCountReporter(mStore);
-            if (isPermissionAcquired()) {
-                mReporter.start(mStepCountObserver);
-            } else {
-                requestPermission();
-            }
-        }
-
-        @Override
-        public void onConnectionFailed(HealthConnectionErrorResult error) {
-            Log.d(APP_TAG, "Health data service is not available.");
-            showConnectionFailureDialog(error);
-        }
-
-        @Override
-        public void onDisconnected() {
-            Log.d(APP_TAG, "Health data service is disconnected.");
-            if (!isFinishing()) {
-                mStore.connectService();
-            }
-        }
-    };
 
 }
