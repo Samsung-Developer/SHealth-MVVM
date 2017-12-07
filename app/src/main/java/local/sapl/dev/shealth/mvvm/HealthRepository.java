@@ -2,6 +2,7 @@ package local.sapl.dev.shealth.mvvm;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MediatorLiveData;
+import android.arch.lifecycle.MutableLiveData;
 import android.content.Context;
 import android.util.Log;
 
@@ -18,8 +19,13 @@ public class HealthRepository {
     private HealthDataStore mStore;
     private SHealth app;
 
-    private String DSConnectionStatus;
-    void setDSConnectionStatus(String status){ DSConnectionStatus = status; }
+    private MutableLiveData<HealthDSConnectionListener.Status> DSConnectionStatus;
+    public MutableLiveData<HealthDSConnectionListener.Status> getDSConnectionStatus(){
+        if (DSConnectionStatus == null) { DSConnectionStatus = new MutableLiveData<HealthDSConnectionListener.Status>(); }
+        return DSConnectionStatus;
+    }
+    public void setDSConnectionStatus(HealthDSConnectionListener.Status status){ getDSConnectionStatus().setValue(status); }
+    private MediatorLiveData<HealthDSConnectionListener.Status> mObservableConnectionStatus;
 
     private HealthRepository(final HealthDataService service, final SHealth context) {
         this.app = context;
@@ -28,20 +34,21 @@ public class HealthRepository {
         try { mService.initialize(app); }
         catch (Exception e) { e.printStackTrace(); }
 
+        mObservableConnectionStatus = new MediatorLiveData<>();
+        mObservableConnectionStatus.setValue(null);
+        mObservableConnectionStatus.addSource(DSConnectionStatus, mObservableConnectionStatus::setValue);
     }
 
     public void connectDataStore(HealthDSConnectionListener listener) {
         if(mStore == null) {
-            // Create a HealthDataStore instance and set its listener
             mStore = new HealthDataStore(app, listener);
-            // Request the connection to the health data store
             mStore.connectService();
         }
     }
 
     public static HealthRepository getInstance(final HealthDataService service, final Context context) {
         if (sHealthInstance == null) {
-            synchronized (DataRepository.class) {
+            synchronized (HealthRepository.class) {
                 if (sHealthInstance == null) {
                     sHealthInstance = new HealthRepository(service, (SHealth) context);
                 }
@@ -49,4 +56,6 @@ public class HealthRepository {
         }
         return sHealthInstance;
     }
+
+    public LiveData<HealthDSConnectionListener.Status> getConnectionStatus() { return mObservableConnectionStatus; }
 }

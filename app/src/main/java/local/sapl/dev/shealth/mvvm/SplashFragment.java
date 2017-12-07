@@ -1,6 +1,7 @@
 package local.sapl.dev.shealth.mvvm;
 
 import android.arch.lifecycle.Lifecycle;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
@@ -24,8 +25,6 @@ public class SplashFragment extends Fragment {
     private SHealth app;
     private TextView tv;
 
-    private ProductAdapter mProductAdapter;
-
     private FragmentSplashBinding mBinding;
 
     @Nullable
@@ -33,15 +32,7 @@ public class SplashFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_splash, container, false);
-
-        mProductAdapter = new ProductAdapter(mProductClickCallback);
-        mBinding.productsList.setAdapter(mProductAdapter);
-
         return mBinding.getRoot();
-
-        splashActivityBinding.setHealthData(model);
-        subscribeToModel(model);
-
     }
 
     @Override
@@ -57,38 +48,35 @@ public class SplashFragment extends Fragment {
         subscribeUi(viewModel);
 
         // Example of a call to a native method
-        tv = findViewById(R.id.loading_tv);
-        tv.setText(stringFromJNI());
+        // tv = findViewById(R.id.loading_tv);
+        // tv.setText(stringFromJNI());
     }
 
     private void subscribeUi(SplashViewModel viewModel) {
         // Update the list when the data changes
-        viewModel.getProducts().observe(this, new Observer<List<ProductEntity>>() {
-            @Override
-            public void onChanged(@Nullable List<ProductEntity> myProducts) {
-                if (myProducts != null) {
-                    mBinding.setIsLoading(false);
-                    mProductAdapter.setProductList(myProducts);
-                } else {
-                    mBinding.setIsLoading(true);
+        viewModel.getConnectionStatus().observe(
+            this,
+            new Observer<HealthDSConnectionListener.Status>() {
+                @Override
+                public void onChanged(@Nullable HealthDSConnectionListener.Status status) {
+                    if (status == HealthDSConnectionListener.Status.CONNECTED) {
+                        Log.v("statusOnChange", "Connected");
+                        mBinding.setIsLoading(true);
+                        //mBinding.setConnectionStatus("Connected");
+                    } else if(status == HealthDSConnectionListener.Status.DISCONNECTED){
+                        Log.v("statusOnChange", "DISCONNECTED");
+                        mBinding.setIsLoading(true);
+                        //mBinding.setConnectionStatus("DISCONNECTED");
+                    }else{
+                        Log.v("statusOnChange", "Failed");
+                        mBinding.setIsLoading(true);
+                        //mBinding.setConnectionStatus("Failed");
+                    }
+                    // espresso does not know how to wait for data binding's loop so we execute changes sync.
+                    mBinding.executePendingBindings();
                 }
-                // espresso does not know how to wait for data binding's loop so we execute changes
-                // sync.
-                mBinding.executePendingBindings();
             }
-        });
+        );
     }
-
-    private final ProductClickCallback mProductClickCallback = new ProductClickCallback() {
-        @Override
-        public void onClick(Product product) {
-
-            if (getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.STARTED)) {
-                ((SplashActivity) getActivity()).show(product);
-            }
-        }
-    };
-
-
 
 }

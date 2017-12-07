@@ -3,7 +3,7 @@
 
     <data>
         <variable name="isLoading" type="boolean" />
-        <variable name="healthData" type="local.sapl.dev.shealth.mvvm.SplashViewModel"/>
+        <variable name="connectionStatus" type="String"/>
     </data>
 
     <LinearLayout
@@ -17,17 +17,15 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center_vertical|center_horizontal"
-            android:text="@string/loading_splash"
-            android:textAlignment="center"
-            app:visibleGone="@{isLoading}"/>
+            android:text="@{connectionStatus}"
+            android:textAlignment="center"/>
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/products_list"
             android:contentDescription="@string/cd_products_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layoutManager="LinearLayoutManager"
-            app:visibleGone="@{!isLoading}"/>
+            app:layoutManager="LinearLayoutManager"/>
 
     </LinearLayout>
 </layout>

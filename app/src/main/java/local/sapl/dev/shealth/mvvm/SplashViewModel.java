@@ -20,19 +20,15 @@ import java.util.List;
 
 public class SplashViewModel extends AndroidViewModel {
 
-    private final MediatorLiveData<HealthDataStore> mObservableDataStore;
+    private final MediatorLiveData<HealthDSConnectionListener.Status> mObservableStatus;
     private final HealthDSConnectionListener mConnectionListener;
 
-    public SplashViewModel(@NonNull Application application, HealthRepository repository) {
+    public SplashViewModel(@NonNull Application application) {
         super(application);
-// do i need to put repo in class property??
-        mObservableDataStore = new MediatorLiveData<>();
-        mObservableDataStore.setValue(null);
+        HealthRepository repository = ((SHealth) application).getRepository();
 
-        LiveData<HealthDataStore> dataStore = repository.getHealthDataStore();
-
-        // observe the changes of the products from the database and forward them
-        mObservableDataStore.addSource(dataStore, mObservableDataStore::setValue);
+        mObservableStatus = new MediatorLiveData<>();
+        mObservableStatus.setValue(null);
 
         mConnectionListener = new HealthDSConnectionListener(repository){
             @Override
@@ -54,13 +50,13 @@ public class SplashViewModel extends AndroidViewModel {
             }
         };
 
+        repository.connectDataStore(mConnectionListener);
+        LiveData<HealthDSConnectionListener.Status> status = repository.getConnectionStatus();
+        mObservableStatus.addSource(status, mObservableStatus::setValue);
+
     }
 
-    public LiveData<String> getHealthSDKConnectionStatus(mConnectionListener){
-
-    }
-
-
+    public LiveData<HealthDSConnectionListener.Status> getConnectionStatus(){ return mObservableStatus; }
 
     public static class Factory extends ViewModelProvider.NewInstanceFactory {
 
@@ -76,8 +72,7 @@ public class SplashViewModel extends AndroidViewModel {
         @Override
         public <T extends ViewModel> T create(Class<T> modelClass) {
             //noinspection unchecked
-            return (T) new SplashViewModel(mApplication, mRepository);
+            return (T) new SplashViewModel(mApplication);
         }
     }
-
 }
